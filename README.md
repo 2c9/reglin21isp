@@ -7,7 +7,7 @@ apt install -y git ansible
 # Download this repo and deploy shit
 
 ```bash
-git clone https://git.kp11.ru/dmitry/reglinx21squid.git
-cd reglinux21squid/
+git https://github.com/2c9/reglin21isp
+cd reglin21isp/
 ansible-playbook pb.yaml
 ```
