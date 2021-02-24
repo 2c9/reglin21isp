@@ -5,7 +5,6 @@
   apt:
     name: "bind9"
     state: latest
-    update_cache: "yes"
 
 - name: "Copy ZONE file"
   copy:
