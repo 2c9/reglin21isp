@@ -40,7 +40,11 @@
     src: ./squid/squid.conf
     dest: /etc/squid/squid.conf
     backup: "yes"
-  notify: 'Stop squid'
+
+- name: Stop squid
+  service:
+    name: squid
+    state: stopped
 
 - name: "Cache Dir"
   shell: squid -z

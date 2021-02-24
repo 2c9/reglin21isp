@@ -1,10 +1,6 @@
 ---
 # handlers file for proxy
 #
-- name: Stop squid
-  service:
-    name: squid
-    state: stopped
 
 - name: Start squid
   service:

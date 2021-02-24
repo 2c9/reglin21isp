@@ -18,10 +18,32 @@
       apt:
         name: "nginx"
         state: latest
-        update_cache: "yes"
 
     - name: "Download loganalyzer"
       uri:
         url: http://download.adiscon.com/loganalyzer/loganalyzer-4.1.11.tar.gz
         dest: /tmp/loganalyzer-4.1.11.tar.gz
-        status_code: 200
+        status_code: [200,304]
+
+    - name: "Remove default nginx page"
+      file:
+        path: /var/www/html/index.nginx-debian.html
+        state: absent
+
+    - name: "Copy mirrorlist to squid dir"
+      copy:
+        src: ./nginx/default
+        dest: /etc/nginx/sites-enabled/default
+        force: "yes"
+      notify: Reload nginx
+
+    - name: "Copy mirrorlist to squid dir"
+      copy:
+        src: /tmp/loganalyzer-4.1.11.tar.gz
+        dest: /var/www/html/loganalyzer-4.1.11.tar.gz
+
+  handlers:
+      - name: Reload nginx
+        service:
+          name: nginx
+          state: reloaded
