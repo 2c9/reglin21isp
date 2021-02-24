@@ -1,0 +1,47 @@
+---
+# tasks file for proxy
+- name: "Install packages"
+  apt:
+    name: ["squid","csvtool"]
+    state: latest
+    update_cache: "yes"
+
+- name: "Download mirrors list"
+  uri:
+    url: https://www.centos.org/download/full-mirrorlist.csv
+    dest: /tmp/full-mirrorlist.csv
+    status_code: [200,304]
+
+- name: "Retrieve fqdn"
+  shell: csvtool col 5,6 /tmp/full-mirrorlist.csv | tr ',' '\n' | sed -r '1,2d;/^$/d;s/^https?:\/\/([^\/]+).+/\1/' | sort | uniq > /tmp/centos_mirrors
+
+- name: "Copy mirrorlist to squid dir"
+  copy:
+    src: /tmp/centos_mirrors
+    dest: /etc/squid/centos_mirrors
+
+- name: "Append fedoraproject.org"
+  lineinfile:
+    path: /etc/squid/centos_mirrors
+    line: '.fedoraproject.org'
+
+- name: "Append .mirrorlist.centos.org"
+  lineinfile:
+    path: /etc/squid/centos_mirrors
+    line: '.mirrorlist.centos.org'
+
+- name: "Append mirror.centos.org"
+  lineinfile:
+    path: /etc/squid/centos_mirrors
+    line: '.mirror.centos.org'
+
+- name: "Copy config"
+  copy:
+    src: ./squid/squid.conf
+    dest: /etc/squid/squid.conf
+    backup: "yes"
+  notify: 'Stop squid'
+
+- name: "Cache Dir"
+  shell: squid -z
+  notify: 'Start squid'

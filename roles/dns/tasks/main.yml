@@ -1,0 +1,25 @@
+---
+# tasks file for dns
+
+- name: "Install packages"
+  apt:
+    name: "bind9"
+    state: latest
+    update_cache: "yes"
+
+- name: "Copy ZONE file"
+  copy:
+    src: ./bind/db.ya
+    dest: /etc/bind/db.ya
+
+- name: "Copy add zone to bind config"
+  copy:
+    src: ./bind/named.conf.default-zones
+    dest: /etc/bind/named.conf.default-zones
+
+- name: "Disable DNSSEC"
+  replace:
+    path: /etc/bind/named.conf.options
+    regexp: 'dnssec-validation auto;'
+    replace: 'dnssec-validation no;'
+  notify: 'Restart bind9'

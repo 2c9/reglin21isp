@@ -1,83 +1,27 @@
 ---
 - name:
   hosts: localhost
+  roles:
+    - proxy
+    - dns
 
   tasks:
 
     - sysctl:
         name: net.ipv4.ip_forward
         value: 1
-        sysctl_set: yes
+        sysctl_set: "yes"
         state: present
-        reload: yes
-      
-    - name: Install packages
+        reload: "yes"
+
+    - name: "Install Nginx"
       apt:
-        name: ['squid','csvtool','bind9']
+        name: "nginx"
         state: latest
-        update_cache: yes
+        update_cache: "yes"
 
-    - name: curl
+    - name: "Download loganalyzer"
       uri:
-        url: https://www.centos.org/download/full-mirrorlist.csv
-        dest: ./squid/full-mirrorlist.csv
-        status_code: [200,304]
-
-    - name: csvtool
-      shell: csvtool col 5,6 ./squid/full-mirrorlist.csv | tr ',' '\n' | sed -r '1,2d;/^$/d;s/^https?:\/\/([^\/]+).+/\1/' | sort | uniq > ./squid/centos_mirrors
-
-    - name: Copy mirrorlist
-      copy:
-        src: ./squid/centos_mirrors
-        dest: /etc/squid/centos_mirrors
-
-    - name: Append fedoraproject.org 
-      lineinfile:
-        path: /etc/squid/centos_mirrors
-        line: '.fedoraproject.org'
-
-    - name: Append .mirrorlist.centos.org
-      lineinfile:
-        path: /etc/squid/centos_mirrors
-        line: '.mirrorlist.centos.org'
-
-    - name: Append mirror.centos.org 
-      lineinfile:
-        path: /etc/squid/centos_mirrors
-        line: '.mirror.centos.org'
-
-    - name: Copy config
-      copy:
-        src: ./squid/squid.conf
-        dest: /etc/squid/squid.conf
-        backup: yes
-      notify: 'Restart squid'
-    
-    - name: Copy ZONE file
-      copy:
-        src: ./bind/db.ya
-        dest: /etc/bind/db.ya
-    
-    - name: Copy add zone to bind config
-      copy:
-        src: ./bind/named.conf.default-zones
-        dest: /etc/bind/named.conf.default-zones
-    
-    - name: Disable DNSSEC
-      replace:
-        path: /etc/bind/named.conf.options
-        regexp: 'dnssec-validation auto;'
-        replace: 'dnssec-validation no;'
-      notify: 'Restart bind9'
-
-  handlers:
-
-    - name: Restart squid
-      service:
-        name: squid
-        state: reloaded
-
-    - name: Restart bind9
-      service:
-        name: bind9
-        state: restarted
+        url: http://download.adiscon.com/loganalyzer/loganalyzer-4.1.11.tar.gz
+        dest: /tmp/loganalyzer-4.1.11.tar.gz
+        status_code: 200
